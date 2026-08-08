@@ -38,6 +38,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
   const [visitorLogs, setVisitorLogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGeneratingBills, setIsGeneratingBills] = useState(false);
+  const [isLoggingVisitor, setIsLoggingVisitor] = useState(false);
   const [selectedFlats, setSelectedFlats] = useState<string[]>([]);
 
   // Edit States
@@ -214,6 +215,39 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
       setMembers(members.map(m => m._id === userId ? { ...m, role: newRole } : m));
     } catch (e) {
       alert("Failed to update role");
+    }
+  };
+
+  const handleLogVisitor = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const visitorName = formData.get("visitorName") as string;
+    const purpose = formData.get("purpose") as string;
+    const flatId = formData.get("flatId") as string;
+
+    if (!visitorName || !purpose || !flatId) return alert("Please fill all fields");
+    
+    setIsLoggingVisitor(true);
+    try {
+      await visitorsApi.logVisitor({ associationId, flatId, visitorName, purpose });
+      const response = await visitorsApi.getAllForAssociation(associationId);
+      setVisitorLogs(response.data);
+      e.currentTarget.reset();
+      alert("Visitor logged and request sent to resident!");
+    } catch (e: any) {
+      alert(e.response?.data?.message || "Failed to log visitor.");
+    } finally {
+      setIsLoggingVisitor(false);
+    }
+  };
+
+  const handleVisitorStatusChange = async (visitorId: string, newStatus: string) => {
+    try {
+      await visitorsApi.updateStatus(visitorId, newStatus);
+      const response = await visitorsApi.getAllForAssociation(associationId);
+      setVisitorLogs(response.data);
+    } catch (e) {
+      alert("Failed to update visitor status");
     }
   };
 
@@ -647,11 +681,40 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
 
           {activeTab === "visitors" && (
             <div className="p-8">
-              <div className="flex items-center mb-6">
-                <Users className="w-6 h-6 text-indigo-600 mr-2" />
-                <h2 className="text-xl font-bold text-gray-900">Visitor Logs</h2>
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center">
+                  <Users className="w-6 h-6 text-indigo-600 mr-2" />
+                  <h2 className="text-xl font-bold text-gray-900">Visitor Logs & Gate Entry</h2>
+                </div>
               </div>
-              <div className="overflow-x-auto">
+
+              <div className="mb-8 p-6 bg-indigo-50 rounded-2xl border border-indigo-100">
+                <h3 className="text-lg font-bold text-indigo-900 mb-4">Log New Visitor</h3>
+                <form onSubmit={handleLogVisitor} className="flex flex-wrap items-end gap-4">
+                  <div className="flex flex-col space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Visitor Name</label>
+                    <Input name="visitorName" placeholder="e.g. Amazon Delivery" required className="bg-white w-56" />
+                  </div>
+                  <div className="flex flex-col space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Purpose</label>
+                    <Input name="purpose" placeholder="e.g. Delivery" required className="bg-white w-48" />
+                  </div>
+                  <div className="flex flex-col space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Destination Flat</label>
+                    <select name="flatId" required className="h-10 px-3 border border-gray-200 rounded-md bg-white w-48 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="">Select Flat...</option>
+                      {flats.map(flat => (
+                        <option key={flat._id} value={flat._id}>{flat.blockName}-{flat.flatNumber}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <Button type="submit" isLoading={isLoggingVisitor} className="rounded-xl px-8 font-bold bg-indigo-600 text-white hover:bg-indigo-700 h-10 ml-auto">
+                    Log Visitor & Ask Resident
+                  </Button>
+                </form>
+              </div>
+
+              <div className="overflow-x-auto border border-gray-100 rounded-xl">
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 text-sm">
@@ -660,6 +723,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                       <th className="py-3 px-4 font-semibold">Flat</th>
                       <th className="py-3 px-4 font-semibold">Status</th>
                       <th className="py-3 px-4 font-semibold">Entry / Exit</th>
+                      <th className="py-3 px-4 font-semibold text-right">Gate Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -678,9 +742,23 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                             {visitor.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-sm text-gray-500">
+                        <td className="py-3 px-4 text-sm text-gray-500 whitespace-nowrap">
                           {visitor.entryTime ? new Date(visitor.entryTime).toLocaleString() : '-'} <br/>
                           {visitor.exitTime ? new Date(visitor.exitTime).toLocaleString() : ''}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex justify-end space-x-2">
+                            {visitor.status === 'APPROVED' && (
+                              <Button size="sm" onClick={() => handleVisitorStatusChange(visitor._id, 'ENTERED')} className="bg-green-600 hover:bg-green-700 text-white text-xs h-8">
+                                Mark Entered
+                              </Button>
+                            )}
+                            {visitor.status === 'ENTERED' && (
+                              <Button size="sm" onClick={() => handleVisitorStatusChange(visitor._id, 'EXITED')} variant="outline" className="text-gray-600 text-xs h-8">
+                                Mark Exited
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}

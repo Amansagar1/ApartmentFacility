@@ -6,13 +6,13 @@ import { invoicesApi } from "@/api/invoices.api";
 import { Button } from "@/components/ui/Button";
 import { Receipt, CheckCircle, Clock, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import useRazorpay from "react-razorpay";
+import { useRazorpay } from "react-razorpay";
 
 export default function MyInvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [Razorpay] = useRazorpay();
+  const { Razorpay } = useRazorpay();
 
   useEffect(() => {
     fetchInvoices();

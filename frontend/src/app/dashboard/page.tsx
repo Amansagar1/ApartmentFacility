@@ -24,23 +24,7 @@ export default function DashboardPage() {
   const [allAssociations, setAllAssociations] = useState<any[]>([]);
 
   useEffect(() => {
-    // Attempt to fetch current user if not loaded yet
-    const fetchUser = async () => {
-      try {
-        const res = await authApi.getMe();
-        setUser(res.data);
-      } catch (error) {
-        // Token is invalid or missing, redirect to login
-        logout();
-        router.push("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!isAuthenticated) {
-      fetchUser();
-    } else {
+    if (isAuthenticated && user) {
       setLoading(false);
 
       if (user?.isSuperAdmin) {
