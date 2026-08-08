@@ -10,6 +10,7 @@ import { visitorsApi } from "@/api/visitors.api";
 import { complaintsApi } from "@/api/complaints.api";
 import { noticesApi } from "@/api/notices.api";
 import { invoicesApi } from "@/api/invoices.api";
+import { associationsApi } from "@/api/associations.api";
 import { Bell, Clock, Plus, Tag, Megaphone, IndianRupee } from "lucide-react";
 import Script from "next/script";
 
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [myComplaints, setMyComplaints] = useState<any[]>([]);
   const [notices, setNotices] = useState<any[]>([]);
   const [myInvoices, setMyInvoices] = useState<any[]>([]);
+  const [allAssociations, setAllAssociations] = useState<any[]>([]);
 
   useEffect(() => {
     // Attempt to fetch current user if not loaded yet
@@ -40,6 +42,13 @@ export default function DashboardPage() {
       fetchUser();
     } else {
       setLoading(false);
+
+      if (user?.isSuperAdmin) {
+        associationsApi.getAll()
+          .then(res => setAllAssociations(res.data))
+          .catch(err => console.error(err));
+      }
+
       // Fetch pending visitors if user has an association
       if (user?.memberships?.[0]?.associationId?._id) {
         const assocId = user.memberships[0].associationId._id;
@@ -286,7 +295,7 @@ export default function DashboardPage() {
             )}
 
             {/* Check if user has no associations */}
-            {(!user.memberships || user.memberships.length === 0) ? (
+            {(!user.memberships || user.memberships.length === 0) && !user.isSuperAdmin && (
               <div className="py-12 px-6 text-center bg-[#f5f5f7] rounded-[2rem] flex flex-col items-center">
                 <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-gray-100">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400 stroke-[1.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -294,14 +303,13 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-3 tracking-tight">No Associations</h3>
-                <p className="text-gray-500 mb-8 max-w-sm text-center leading-relaxed">
-                  You need to create your apartment association or be invited to join an existing one to proceed.
+                <p className="text-gray-500 max-w-sm text-center leading-relaxed">
+                  You need to be invited to join an existing association to proceed. Please contact your Association Admin.
                 </p>
-                <Button onClick={() => router.push("/dashboard/create-association")} className="h-14 px-10 rounded-full font-semibold bg-gray-900 text-white hover:bg-gray-800 shadow-[0_4px_14px_0_rgb(0,0,0,0.1)] transition-all">
-                  Create Association
-                </Button>
               </div>
-            ) : (
+            )}
+
+            {user.memberships && user.memberships.length > 0 && (
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold text-gray-900 tracking-tight">Your Associations</h3>
                 <div className="grid gap-4">
@@ -325,8 +333,42 @@ export default function DashboardPage() {
             )}
 
             {user.isSuperAdmin && (
-              <div className="mt-8 p-6 bg-gray-50 rounded-2xl border border-gray-200 flex items-center">
-                <span className="text-gray-900 font-medium tracking-tight">You have Super Admin privileges.</span>
+              <div className="mt-12 space-y-6 pt-8 border-t border-gray-200">
+                <div className="flex justify-between items-center flex-wrap gap-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 tracking-tight flex items-center">
+                      <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-md mr-3 uppercase tracking-wider">Super Admin</span>
+                      Platform Associations
+                    </h3>
+                    <p className="text-gray-500 text-sm mt-1">Global view of all associations on LiveMitra</p>
+                  </div>
+                  <Button onClick={() => router.push("/dashboard/create-association")} className="h-10 px-6 rounded-full font-semibold bg-gray-900 text-white hover:bg-gray-800 shadow-[0_4px_14px_0_rgb(0,0,0,0.1)] transition-all">
+                    <Plus className="w-4 h-4 mr-2" /> New Association
+                  </Button>
+                </div>
+                
+                <div className="grid gap-4">
+                  {allAssociations.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500 border border-dashed border-gray-200 rounded-xl">No associations created yet.</div>
+                  ) : (
+                    allAssociations.map((assoc: any) => (
+                      <div key={assoc._id} className="p-5 rounded-2xl border border-gray-100 bg-white shadow-sm flex justify-between items-center">
+                        <div>
+                          <h4 className="font-semibold text-lg text-gray-900">{assoc.name}</h4>
+                          <p className="text-sm text-gray-500 font-medium mt-1">{assoc.city}, {assoc.state}</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full px-4"
+                          onClick={() => router.push(`/dashboard/association/${assoc._id}`)}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             )}
           </div>

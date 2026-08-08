@@ -62,4 +62,11 @@ const getMyAssociations = async (req, res, next) => {
   }
 };
 
-module.exports = { createAssociation, getMyAssociations };
+const getAllAssociations = async (req, res, next) => {
+  try {
+    const associations = await Association.find();
+    res.status(HTTP_STATUS.OK).json({ success: true, data: associations });
+  } catch (error) { next(error); }
+};
+
+module.exports = { createAssociation, getMyAssociations, getAllAssociations };

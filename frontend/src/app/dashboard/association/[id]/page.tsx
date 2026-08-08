@@ -11,7 +11,9 @@ import { flatsApi } from "@/api/flats.api";
 import { complaintsApi } from "@/api/complaints.api";
 import { noticesApi } from "@/api/notices.api";
 import { invoicesApi } from "@/api/invoices.api";
-import { Building2, Plus, ArrowLeft, Wrench, Tag, Megaphone, Receipt, Trash2, Edit2, Check, X } from "lucide-react";
+import { visitorsApi } from "@/api/visitors.api";
+import { associationsApi } from "@/api/associations.api";
+import { Building2, Plus, ArrowLeft, Wrench, Tag, Megaphone, Receipt, Trash2, Edit2, Check, X, UserCheck, Shield, Users } from "lucide-react";
 import Link from "next/link";
 
 const noticeSchema = z.object({
@@ -26,12 +28,14 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
   const router = useRouter();
   const { id: associationId } = use(params);
   
-  const [activeTab, setActiveTab] = useState<"directory" | "helpdesk" | "notices" | "accounting">("directory");
+  const [activeTab, setActiveTab] = useState<"directory" | "helpdesk" | "notices" | "accounting" | "approvals" | "staff" | "visitors">("directory");
 
   const [flats, setFlats] = useState<any[]>([]);
   const [complaints, setComplaints] = useState<any[]>([]);
   const [notices, setNotices] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [visitorLogs, setVisitorLogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGeneratingBills, setIsGeneratingBills] = useState(false);
   const [selectedFlats, setSelectedFlats] = useState<string[]>([]);
@@ -72,6 +76,12 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
           ]);
           setInvoices(invRes.data);
           setFlats(flatRes.data);
+        } else if (activeTab === "approvals" || activeTab === "staff") {
+          const response = await associationsApi.getMembers(associationId);
+          setMembers(response.data);
+        } else if (activeTab === "visitors") {
+          const response = await visitorsApi.getAllForAssociation(associationId);
+          setVisitorLogs(response.data);
         }
       } catch (error) {
         console.error("Failed to fetch data", error);
@@ -189,6 +199,24 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
     } catch (e) { alert("Failed to delete complaint"); }
   };
 
+  const handleApproveMember = async (userId: string, newStatus: string) => {
+    try {
+      await associationsApi.updateMembership(associationId, userId, { status: newStatus });
+      setMembers(members.map(m => m._id === userId ? { ...m, status: newStatus } : m));
+    } catch (e) {
+      alert("Failed to update member status");
+    }
+  };
+
+  const handleChangeRole = async (userId: string, newRole: string) => {
+    try {
+      await associationsApi.updateMembership(associationId, userId, { role: newRole });
+      setMembers(members.map(m => m._id === userId ? { ...m, role: newRole } : m));
+    } catch (e) {
+      alert("Failed to update role");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fbfbfd] p-8 font-sans">
       <div className="max-w-5xl mx-auto space-y-8">
@@ -238,6 +266,24 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
             className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "accounting" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
           >
             Accounting
+          </button>
+          <button
+            onClick={() => setActiveTab("approvals")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "approvals" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Approvals
+          </button>
+          <button
+            onClick={() => setActiveTab("staff")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "staff" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Staff
+          </button>
+          <button
+            onClick={() => setActiveTab("visitors")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "visitors" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Visitor Logs
           </button>
         </div>
 
@@ -537,6 +583,109 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                     </table>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+          {activeTab === "approvals" && (
+            <div className="p-8">
+              <div className="flex items-center mb-6">
+                <UserCheck className="w-6 h-6 text-blue-600 mr-2" />
+                <h2 className="text-xl font-bold text-gray-900">Member Approvals</h2>
+              </div>
+              <div className="space-y-4">
+                {members.filter(m => m.status === 'PENDING').length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No pending member approvals.</p>
+                ) : (
+                  members.filter(m => m.status === 'PENDING').map(member => (
+                    <div key={member._id} className="p-4 border rounded-xl flex justify-between items-center bg-gray-50">
+                      <div>
+                        <p className="font-bold">{member.fullName}</p>
+                        <p className="text-sm text-gray-500">{member.email}</p>
+                        <p className="text-sm mt-1">Requested Role: <span className="font-semibold">{member.role}</span></p>
+                      </div>
+                      <div className="space-x-2">
+                        <Button onClick={() => handleApproveMember(member._id, 'ACTIVE')} className="bg-green-600 hover:bg-green-700 text-white rounded-full">Approve</Button>
+                        <Button onClick={() => handleApproveMember(member._id, 'REJECTED')} variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 rounded-full">Reject</Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "staff" && (
+            <div className="p-8">
+              <div className="flex items-center mb-6">
+                <Shield className="w-6 h-6 text-purple-600 mr-2" />
+                <h2 className="text-xl font-bold text-gray-900">Staff Management</h2>
+              </div>
+              <p className="text-gray-500 mb-6">Manage roles for existing members (e.g. promoting a user to EMPLOYEE or ASSOCIATION_ADMIN).</p>
+              <div className="space-y-4">
+                {members.map(member => (
+                  <div key={member._id} className="p-4 border rounded-xl flex flex-wrap gap-4 justify-between items-center bg-white shadow-sm">
+                    <div>
+                      <p className="font-bold">{member.fullName} <span className={`text-xs px-2 py-0.5 rounded-md ${member.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>{member.status}</span></p>
+                      <p className="text-sm text-gray-500">{member.email}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <select 
+                        value={member.role} 
+                        onChange={(e) => handleChangeRole(member._id, e.target.value)}
+                        className="border rounded-md px-3 py-1.5 text-sm"
+                      >
+                        <option value="RESIDENT">Resident</option>
+                        <option value="EMPLOYEE">Employee (Gatekeeper)</option>
+                        <option value="ASSOCIATION_ADMIN">Admin</option>
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "visitors" && (
+            <div className="p-8">
+              <div className="flex items-center mb-6">
+                <Users className="w-6 h-6 text-indigo-600 mr-2" />
+                <h2 className="text-xl font-bold text-gray-900">Visitor Logs</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 text-sm">
+                      <th className="py-3 px-4 font-semibold">Visitor Name</th>
+                      <th className="py-3 px-4 font-semibold">Purpose</th>
+                      <th className="py-3 px-4 font-semibold">Flat</th>
+                      <th className="py-3 px-4 font-semibold">Status</th>
+                      <th className="py-3 px-4 font-semibold">Entry / Exit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {visitorLogs.map(visitor => (
+                      <tr key={visitor._id} className="hover:bg-gray-50/50">
+                        <td className="py-3 px-4 font-semibold text-gray-900">{visitor.visitorName}</td>
+                        <td className="py-3 px-4 text-gray-600">{visitor.purpose}</td>
+                        <td className="py-3 px-4 text-gray-600">{visitor.flatId?.blockName}-{visitor.flatId?.flatNumber}</td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex px-2 py-1 text-xs font-bold rounded-md ${
+                            visitor.status === 'ENTERED' ? 'bg-green-100 text-green-700' :
+                            visitor.status === 'EXITED' ? 'bg-gray-100 text-gray-600' :
+                            visitor.status === 'DENIED' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {visitor.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-500">
+                          {visitor.entryTime ? new Date(visitor.entryTime).toLocaleString() : '-'} <br/>
+                          {visitor.exitTime ? new Date(visitor.exitTime).toLocaleString() : ''}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
