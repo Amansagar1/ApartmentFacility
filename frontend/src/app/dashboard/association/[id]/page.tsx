@@ -370,7 +370,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
             <div className="p-5 md:p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#3C50E0] flex items-center justify-center">
                     <Activity className="w-5 h-5" />
                   </div>
                   <div>
@@ -379,7 +379,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                   </div>
                 </div>
                 <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#3C50E0] flex items-center justify-center">
                     <IndianRupee className="w-5 h-5" />
                   </div>
                   <div>
@@ -388,7 +388,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                   </div>
                 </div>
                 <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#3C50E0] flex items-center justify-center">
                     <Users className="w-5 h-5" />
                   </div>
                   <div>

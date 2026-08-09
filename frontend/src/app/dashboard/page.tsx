@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
       if (user?.memberships?.[0]?.associationId?._id) {
         const assocId = user.memberships[0].associationId._id;
-        
+
         visitorsApi.getAllForAssociation(assocId)
           .then(res => {
             setPendingVisitors(res.data.filter((v: any) => v.status === "PENDING"));
@@ -70,7 +70,7 @@ export default function DashboardPage() {
     if (!user) return;
     try {
       const { order, key_id } = await invoicesApi.createOrder(invoice._id);
-      
+
       const options = {
         key: key_id,
         amount: order.amount,
@@ -99,7 +99,7 @@ export default function DashboardPage() {
         },
         theme: { color: "#3C50E0" }
       };
-      
+
       const rzp1 = new (window as any).Razorpay(options);
       rzp1.open();
     } catch (err) {
@@ -165,7 +165,7 @@ export default function DashboardPage() {
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
-      
+
       {(!user.memberships || user.memberships.length === 0) && !user.isSuperAdmin ? (
         <div className="flex flex-col items-center justify-center p-10 bg-white rounded-sm border border-[#E2E8F0] shadow-default">
           <AlertCircle className="w-16 h-16 text-[#8A99AF] mb-4" />
@@ -176,23 +176,22 @@ export default function DashboardPage() {
         <div className="space-y-6">
           {/* Admin Quick Access Banner */}
           {(user.isSuperAdmin || user.memberships?.some((m: any) => m.role === 'ASSOCIATION_ADMIN')) && (
-            <div className="bg-gradient-to-r from-[#3C50E0] via-[#5264E8] to-[#80CAEE] rounded-xl shadow-lg shadow-blue-500/20 p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between text-white relative overflow-hidden">
-              {/* Decorative background elements */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3"></div>
-              
+            <div className="bg-[#0F172A] rounded-xl border border-blue-500/30 shadow-[0_8px_30px_rgb(0,0,0,0.12),inset_0px_1px_0px_rgba(255,255,255,0.1)] p-5 flex flex-col sm:flex-row items-center justify-between text-white relative overflow-hidden mb-2">
+              {/* Sidebar Active State Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-blue-500/5 pointer-events-none"></div>
+
               <div className="flex items-center gap-4 mb-4 sm:mb-0 relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                  <ShieldCheck className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-blue-500/20 backdrop-blur-md flex items-center justify-center border border-blue-500/30 shadow-inner">
+                  <ShieldCheck className="w-6 h-6 text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold tracking-tight">Association Admin Access</h3>
-                  <p className="text-sm text-white/90 font-medium mt-0.5">Manage flats, members, invoices, and settings.</p>
+                  <h3 className="text-lg font-bold tracking-tight text-white">Association Admin Access</h3>
+                  <p className="text-sm text-slate-300 font-medium mt-0.5">Manage flats, members, invoices, and settings.</p>
                 </div>
               </div>
-              <Button 
+              <button
                 onClick={() => {
                   const adminMembership = user.memberships?.find((m: any) => m.role === 'ASSOCIATION_ADMIN');
-                  // For super admin without membership, route to associations list, otherwise go to their admin dashboard
                   const assocId = adminMembership ? (typeof adminMembership.associationId === 'object' ? adminMembership.associationId._id : adminMembership.associationId) : null;
                   if (assocId) {
                     router.push(`/dashboard/association/${assocId}`);
@@ -200,10 +199,10 @@ export default function DashboardPage() {
                     router.push(`/dashboard/associations`);
                   }
                 }}
-                className="bg-white text-[#3C50E0] hover:bg-slate-50 font-bold px-6 py-2 rounded-lg shadow-md transition-transform hover:scale-105 active:scale-95 relative z-10"
+                className="bg-[#0F172A]  hover:bg-blue-600 text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 relative z-10 text-sm whitespace-nowrap border border-blue-400/50"
               >
                 Go to Admin Panel
-              </Button>
+              </button>
             </div>
           )}
 
@@ -229,7 +228,7 @@ export default function DashboardPage() {
 
             {/* Active Complaints KPI */}
             <div className="rounded-xl border border-slate-200/60 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300 group cursor-default">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50 text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-[#3C50E0] group-hover:bg-[#3C50E0] group-hover:text-white transition-colors duration-300">
                 <Tag className="w-5 h-5" />
               </div>
               <div className="mt-3">
@@ -244,7 +243,7 @@ export default function DashboardPage() {
 
             {/* Pending Visitors KPI */}
             <div className="rounded-xl border border-slate-200/60 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300 group cursor-default">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-[#3C50E0] group-hover:bg-[#3C50E0] group-hover:text-white transition-colors duration-300">
                 <UserCheck className="w-5 h-5" />
               </div>
               <div className="mt-3">
@@ -259,7 +258,7 @@ export default function DashboardPage() {
 
             {/* Notices KPI */}
             <div className="rounded-xl border border-slate-200/60 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-300 group cursor-default">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-colors duration-300">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-[#3C50E0] group-hover:bg-[#3C50E0] group-hover:text-white transition-colors duration-300">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div className="mt-3">
@@ -282,13 +281,13 @@ export default function DashboardPage() {
                   <AreaChart data={visitorData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorVisitorsMain" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3C50E0" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#3C50E0" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#3C50E0" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3C50E0" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 12}} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 12}} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} />
                     <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                     <Area type="monotone" dataKey="visitors" stroke="#3C50E0" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitorsMain)" />
                   </AreaChart>
@@ -336,7 +335,7 @@ export default function DashboardPage() {
 
           {/* Action Widgets Row */}
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-            
+
             {/* Notices List */}
             <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden">
               <div className="flex items-center justify-between py-5 px-6 border-b border-slate-100 bg-slate-50/50">
@@ -371,7 +370,7 @@ export default function DashboardPage() {
 
             {/* Pending Approvals / Unpaid Invoices */}
             <div className="space-y-4">
-              
+
               {/* Unpaid Invoices */}
               {unpaidInvoices.length > 0 && (
                 <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden">
@@ -383,7 +382,7 @@ export default function DashboardPage() {
                       <div key={invoice._id} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all duration-300">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 flex-shrink-0 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
-                             {new Date(invoice.dueDate).getDate()}
+                            {new Date(invoice.dueDate).getDate()}
                           </div>
                           <div>
                             <h5 className="font-semibold text-[#1C2434] text-sm">Invoice for {invoice.billingMonth}</h5>
@@ -413,7 +412,7 @@ export default function DashboardPage() {
                       <div key={visitor._id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all duration-300">
                         <div>
                           <h5 className="font-semibold text-[#1C2434] text-sm">{visitor.visitorName}</h5>
-                          <p className="text-xs font-medium text-[#64748B] mt-0.5">{visitor.purpose} • {new Date(visitor.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                          <p className="text-xs font-medium text-[#64748B] mt-0.5">{visitor.purpose} • {new Date(visitor.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
                         <div className="flex gap-2">
                           <button onClick={() => handleVisitorAction(visitor._id, "APPROVED")} className="px-3 py-1.5 text-xs font-bold text-white bg-emerald-500 rounded-lg shadow-sm hover:bg-emerald-600 transition-colors">Approve</button>
