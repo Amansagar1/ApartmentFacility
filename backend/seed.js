@@ -22,15 +22,6 @@ const seedDB = async () => {
 
     await User.deleteMany({ email: { $in: ['superadmin@livemitra.com', 'admin@livemitra.com', 'resident@livemitra.com', 'employee@livemitra.com'] }});
 
-    const sa = new User({
-      fullName: 'Super Admin',
-      email: 'superadmin@livemitra.com',
-      password: 'password123',
-      phone: '9999999999',
-      isSuperAdmin: true
-    });
-    await sa.save();
-
     // 2. Create a dummy Association
     let assoc = await Association.findOne({ name: 'LiveMitra Grand' });
     if (!assoc) {
@@ -43,15 +34,42 @@ const seedDB = async () => {
       });
     }
 
-    // 3. Create a dummy Flat
-    let flat = await Flat.findOne({ associationId: assoc._id, blockName: 'A', flatNumber: '101' });
-    if (!flat) {
-      flat = await Flat.create({
+    const sa = new User({
+      fullName: 'Super Admin',
+      email: 'superadmin@livemitra.com',
+      password: 'password123',
+      phone: '9999999999',
+      isSuperAdmin: true,
+      memberships: [{
         associationId: assoc._id,
-        blockName: 'A',
-        flatNumber: '101'
-      });
+        role: ROLES.ASSOCIATION_ADMIN,
+        status: MEMBERSHIP_STATUS.ACTIVE
+      }]
+    });
+    await sa.save();
+
+
+    // 3. Create dummy Flats
+    const blocks = ['A', 'B'];
+    const floors = [1, 2, 3];
+    const flatsPerFloor = 4;
+    
+    for (const block of blocks) {
+      for (const floor of floors) {
+        for (let i = 1; i <= flatsPerFloor; i++) {
+          const flatNum = `${floor}0${i}`;
+          let flat = await Flat.findOne({ associationId: assoc._id, blockName: block, flatNumber: flatNum });
+          if (!flat) {
+            await Flat.create({
+              associationId: assoc._id,
+              blockName: block,
+              flatNumber: flatNum
+            });
+          }
+        }
+      }
     }
+
 
     // 4. Create Association Admin
     const admin = new User({

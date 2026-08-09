@@ -11,6 +11,7 @@ const visitorRoutes = require('./src/modules/visitors/routes/visitorRoutes');
 const complaintRoutes = require('./src/modules/helpdesk/routes/complaintRoutes');
 const noticeRoutes = require('./src/modules/notices/routes/noticeRoutes');
 const invoiceRoutes = require('./src/modules/billing/routes/invoiceRoutes');
+const supportRoutes = require('./src/modules/support/routes/supportRoutes');
 
 // ----------------Initialize Express App------------
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/v1/visitors', visitorRoutes);
 app.use('/api/v1/complaints', complaintRoutes);
 app.use('/api/v1/notices', noticeRoutes);
 app.use('/api/v1/billing', invoiceRoutes);
+app.use('/api/v1/support', supportRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'LiveMitra API is running securely 🟢' });

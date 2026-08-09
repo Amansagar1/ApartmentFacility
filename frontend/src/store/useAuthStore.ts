@@ -2,9 +2,11 @@ import { create } from 'zustand';
 
 interface User {
   id: string;
+  _id?: string;
   fullName: string;
   email: string;
   isSuperAdmin: boolean;
+  isGatekeeper?: boolean;
   memberships?: any[];
 }
 

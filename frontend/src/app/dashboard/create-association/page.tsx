@@ -43,11 +43,11 @@ export default function CreateAssociationPage() {
       setServerError("");
       // 1. Create the association on the backend
       await associationsApi.create(data);
-      
+
       // 2. Fetch the newly updated user profile (which now has the new membership)
       const freshUser = await authApi.getMe();
       setUser(freshUser.data);
-      
+
       // 3. Go back to dashboard
       router.push("/dashboard");
     } catch (error: any) {
@@ -58,17 +58,17 @@ export default function CreateAssociationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-      
-      <div className="w-full max-w-3xl relative z-10">
-        
+    <div className="min-h-screen bg-[#f5f5f7] py-6 px-4 sm:px-6 lg:px-6 flex justify-center">
+
+      <div className="w-full max-w-6xl relative z-10">
+
         <Link href="/dashboard" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-8 transition-colors font-medium">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Link>
 
         <div className="bg-white/70 backdrop-blur-3xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white overflow-hidden">
-          
+
           <div className="p-10 pb-6 text-center">
             <h1 className="text-3xl font-semibold tracking-tight text-gray-900 mb-3">Create Association</h1>
             <p className="text-gray-500 font-medium">Set up your apartment complex to begin management.</p>
@@ -76,7 +76,7 @@ export default function CreateAssociationPage() {
 
           <div className="px-10 pb-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              
+
               {serverError && (
                 <div className="p-4 text-sm text-red-600 bg-red-50/80 border border-red-100 rounded-xl flex items-center">
                   <span className="font-medium">{serverError}</span>

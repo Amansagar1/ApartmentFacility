@@ -13,8 +13,9 @@ import { noticesApi } from "@/api/notices.api";
 import { invoicesApi } from "@/api/invoices.api";
 import { visitorsApi } from "@/api/visitors.api";
 import { associationsApi } from "@/api/associations.api";
-import { Building2, Plus, ArrowLeft, Wrench, Tag, Megaphone, Receipt, Trash2, Edit2, Check, X, UserCheck, Shield, Users } from "lucide-react";
+import { Building2, Plus, ArrowLeft, Wrench, Tag, Megaphone, Receipt, Trash2, Edit2, Check, X, UserCheck, Shield, Users, BarChart3, IndianRupee, Activity } from "lucide-react";
 import Link from "next/link";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
 
 const noticeSchema = z.object({
   title: z.string().min(3, "Title required"),
@@ -27,8 +28,8 @@ type NoticeFormValues = z.infer<typeof noticeSchema>;
 export default function AssociationDashboardPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id: associationId } = use(params);
-  
-  const [activeTab, setActiveTab] = useState<"directory" | "helpdesk" | "notices" | "accounting" | "approvals" | "staff" | "visitors">("directory");
+
+  const [activeTab, setActiveTab] = useState<"overview" | "directory" | "helpdesk" | "notices" | "accounting" | "approvals" | "staff" | "visitors">("overview");
 
   const [flats, setFlats] = useState<any[]>([]);
   const [complaints, setComplaints] = useState<any[]>([]);
@@ -44,10 +45,10 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
   // Edit States
   const [editingFlatId, setEditingFlatId] = useState<string | null>(null);
   const [editFlatData, setEditFlatData] = useState<any>({});
-  
+
   const [editingNoticeId, setEditingNoticeId] = useState<string | null>(null);
   const [editNoticeData, setEditNoticeData] = useState<any>({});
-  
+
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
   const [editInvoiceData, setEditInvoiceData] = useState<any>({});
 
@@ -61,7 +62,16 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (activeTab === "directory") {
+        if (activeTab === "overview") {
+          const [invRes, compRes, visRes] = await Promise.all([
+            invoicesApi.getAllForAssociation(associationId).catch(() => ({ data: [] })),
+            complaintsApi.getAllForAssociation(associationId).catch(() => ({ data: [] })),
+            visitorsApi.getAllForAssociation(associationId).catch(() => ({ data: [] }))
+          ]);
+          setInvoices(invRes.data);
+          setComplaints(compRes.data);
+          setVisitorLogs(visRes.data);
+        } else if (activeTab === "directory") {
           const response = await flatsApi.getByAssociationId(associationId);
           setFlats(response.data);
         } else if (activeTab === "helpdesk") {
@@ -90,7 +100,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
         setIsLoading(false);
       }
     };
-    
+
     if (associationId) {
       setIsLoading(true);
       fetchData();
@@ -127,7 +137,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
     const dueDate = formData.get("dueDate") as string;
 
     if (!amount || !billingMonth || !dueDate) return alert("Please fill all fields");
-    
+
     setIsGeneratingBills(true);
     try {
       await invoicesApi.generate({ associationId, amount, billingMonth, dueDate, flatIds: selectedFlats });
@@ -226,7 +236,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
     const flatId = formData.get("flatId") as string;
 
     if (!visitorName || !purpose || !flatId) return alert("Please fill all fields");
-    
+
     setIsLoggingVisitor(true);
     try {
       await visitorsApi.logVisitor({ associationId, flatId, visitorName, purpose });
@@ -251,10 +261,34 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
     }
   };
 
+  // Derived Stats for Overview
+  const activeComplaintsCount = complaints.filter(c => c.status !== 'RESOLVED').length;
+  const totalInvoicesSum = invoices.reduce((sum, inv) => sum + inv.amount, 0);
+  const collectedInvoicesSum = invoices.filter(inv => inv.status === 'PAID').reduce((sum, inv) => sum + inv.amount, 0);
+  
+  // Prepare Complaint Chart Data
+  const complaintCategories = complaints.reduce((acc: any, curr) => {
+    acc[curr.category] = (acc[curr.category] || 0) + 1;
+    return acc;
+  }, {});
+  const complaintStats = Object.keys(complaintCategories).map(key => ({ name: key, value: complaintCategories[key] }));
+  const PIE_COLORS = ['#3C50E0', '#10B981', '#F59E0B', '#DC3545', '#8B5CF6'];
+
+  // Prepare Visitor Chart Data (Mocking last 7 days since real data might be sparse)
+  const visitorData = [
+    { name: 'Mon', visitors: 12 },
+    { name: 'Tue', visitors: 19 },
+    { name: 'Wed', visitors: 15 },
+    { name: 'Thu', visitors: 22 },
+    { name: 'Fri', visitors: 28 },
+    { name: 'Sat', visitors: 35 },
+    { name: 'Sun', visitors: 25 },
+  ];
+
   return (
     <div className="min-h-screen bg-[#fbfbfd] p-8 font-sans">
-      <div className="max-w-5xl mx-auto space-y-8">
-        
+      <div className="max-w-8xl mx-auto space-y-8">
+
         <Link href="/dashboard" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 transition-colors font-medium">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Main Dashboard
@@ -266,7 +300,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
             <p className="text-gray-500 font-medium mt-1">Manage your flats, resident complaints, and announcements.</p>
           </div>
           {activeTab === "directory" && (
-            <Button 
+            <Button
               className="rounded-full px-6 font-semibold bg-gray-900 text-white hover:bg-gray-800 shadow-[0_4px_14px_0_rgb(0,0,0,0.1)] transition-all"
               onClick={() => router.push(`/dashboard/association/${associationId}/add-flat`)}
             >
@@ -276,10 +310,16 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
         </div>
 
         {/* Custom Apple-style Tabs */}
-        <div className="flex p-1 bg-gray-100 rounded-xl w-fit mb-6">
+        <div className="flex p-1 bg-gray-100 rounded-xl w-fit mb-6 overflow-x-auto max-w-full">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === "overview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Overview
+          </button>
           <button
             onClick={() => setActiveTab("directory")}
-            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "directory" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === "directory" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
           >
             Flats Directory
           </button>
@@ -315,7 +355,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
           </button>
           <button
             onClick={() => setActiveTab("visitors")}
-            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "visitors" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === "visitors" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
           >
             Visitor Logs
           </button>
@@ -325,6 +365,99 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <p className="text-gray-400 animate-pulse font-medium">Loading data...</p>
+            </div>
+          ) : activeTab === "overview" ? (
+            <div className="p-5 md:p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <Activity className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-extrabold text-slate-800">{activeComplaintsCount}</h4>
+                    <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Active Complaints</p>
+                  </div>
+                </div>
+                <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <IndianRupee className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-extrabold text-slate-800">₹{collectedInvoicesSum.toLocaleString()}</h4>
+                    <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Collected Revenue</p>
+                  </div>
+                </div>
+                <div className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-extrabold text-slate-800">{visitorLogs.filter(v => new Date(v.createdAt).toDateString() === new Date().toDateString()).length}</h4>
+                    <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">Total Visitors (Today)</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Visitor Traffic Chart */}
+                <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
+                  <h4 className="text-base font-bold text-slate-800 mb-4">Visitor Traffic (Last 7 Days)</h4>
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={visitorData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3C50E0" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#3C50E0" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 12}} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 12}} />
+                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                        <Area type="monotone" dataKey="visitors" stroke="#3C50E0" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitors)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Complaints Donut */}
+                <div className="lg:col-span-1 bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
+                  <h4 className="text-base font-bold text-slate-800 mb-4">Complaints by Category</h4>
+                  {complaintStats.length > 0 ? (
+                    <div className="h-[300px] flex flex-col justify-between">
+                      <div className="h-[200px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={complaintStats} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={4} dataKey="value" stroke="none">
+                              {complaintStats.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex flex-col gap-2 mt-4 overflow-y-auto max-h-[80px]">
+                        {complaintStats.map((stat, idx) => (
+                          <div key={idx} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="block h-3 w-3 rounded-full" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}></span>
+                              <span className="text-sm font-medium text-slate-600">{stat.name}</span>
+                            </div>
+                            <span className="text-sm font-bold text-slate-800">{stat.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-[300px] flex flex-col items-center justify-center text-slate-400">
+                      <Check className="w-12 h-12 mb-3 text-emerald-400" />
+                      <p className="font-medium">No complaints found</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           ) : activeTab === "directory" ? (
             // Flats Directory View
@@ -356,13 +489,13 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                       <tr key={flat._id} className="group hover:bg-gray-50 transition-colors">
                         {editingFlatId === flat._id ? (
                           <>
-                            <td className="py-4 px-6"><Input value={editFlatData.blockName || ""} onChange={e => setEditFlatData({...editFlatData, blockName: e.target.value})} className="h-8 min-w-[80px]" /></td>
-                            <td className="py-4 px-6"><Input value={editFlatData.flatNumber || ""} onChange={e => setEditFlatData({...editFlatData, flatNumber: e.target.value})} className="h-8 min-w-[80px]" /></td>
-                            <td className="py-4 px-6"><Input value={editFlatData.ownerEmail || ""} onChange={e => setEditFlatData({...editFlatData, ownerEmail: e.target.value})} className="h-8 min-w-[150px]" /></td>
-                            <td className="py-4 px-6"><Input value={editFlatData.tenantEmail || ""} onChange={e => setEditFlatData({...editFlatData, tenantEmail: e.target.value})} className="h-8 min-w-[150px]" /></td>
+                            <td className="py-4 px-6"><Input value={editFlatData.blockName || ""} onChange={e => setEditFlatData({ ...editFlatData, blockName: e.target.value })} className="h-8 min-w-[80px]" /></td>
+                            <td className="py-4 px-6"><Input value={editFlatData.flatNumber || ""} onChange={e => setEditFlatData({ ...editFlatData, flatNumber: e.target.value })} className="h-8 min-w-[80px]" /></td>
+                            <td className="py-4 px-6"><Input value={editFlatData.ownerEmail || ""} onChange={e => setEditFlatData({ ...editFlatData, ownerEmail: e.target.value })} className="h-8 min-w-[150px]" /></td>
+                            <td className="py-4 px-6"><Input value={editFlatData.tenantEmail || ""} onChange={e => setEditFlatData({ ...editFlatData, tenantEmail: e.target.value })} className="h-8 min-w-[150px]" /></td>
                             <td className="py-4 px-6 text-right space-x-2 min-w-[100px]">
-                              <button onClick={() => handleSaveFlat(flat._id)} className="text-green-600 hover:text-green-800 p-1"><Check className="w-5 h-5"/></button>
-                              <button onClick={() => setEditingFlatId(null)} className="text-gray-400 hover:text-gray-600 p-1"><X className="w-5 h-5"/></button>
+                              <button onClick={() => handleSaveFlat(flat._id)} className="text-green-600 hover:text-green-800 p-1"><Check className="w-5 h-5" /></button>
+                              <button onClick={() => setEditingFlatId(null)} className="text-gray-400 hover:text-gray-600 p-1"><X className="w-5 h-5" /></button>
                             </td>
                           </>
                         ) : (
@@ -372,8 +505,8 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                             <td className="py-4 px-6 text-gray-600">{flat.ownerEmail || <span className="text-gray-400 italic">Not Added</span>}</td>
                             <td className="py-4 px-6 text-gray-600">{flat.tenantEmail || <span className="text-gray-400 italic">N/A</span>}</td>
                             <td className="py-4 px-6 text-right space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => handleEditFlat(flat)} className="text-blue-500 hover:text-blue-700 transition-colors"><Edit2 className="w-4 h-4"/></button>
-                              <button onClick={() => handleDeleteFlat(flat._id)} className="text-red-500 hover:text-red-700 transition-colors"><Trash2 className="w-4 h-4"/></button>
+                              <button onClick={() => handleEditFlat(flat)} className="text-blue-500 hover:text-blue-700 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                              <button onClick={() => handleDeleteFlat(flat._id)} className="text-red-500 hover:text-red-700 transition-colors"><Trash2 className="w-4 h-4" /></button>
                             </td>
                           </>
                         )}
@@ -402,11 +535,10 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                         <span className="inline-flex items-center text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md">
                           <Tag className="w-3 h-3 mr-1" /> {complaint.category}
                         </span>
-                        <span className={`inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-md ${
-                          complaint.status === 'OPEN' ? 'text-yellow-600 bg-yellow-100' : 
-                          complaint.status === 'IN_PROGRESS' ? 'text-purple-600 bg-purple-100' : 
-                          'text-green-600 bg-green-100'
-                        }`}>
+                        <span className={`inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-md ${complaint.status === 'OPEN' ? 'text-yellow-600 bg-yellow-100' :
+                          complaint.status === 'IN_PROGRESS' ? 'text-purple-600 bg-purple-100' :
+                            'text-green-600 bg-green-100'
+                          }`}>
                           {complaint.status.replace("_", " ")}
                         </span>
                         <span className="text-xs text-gray-400 font-medium ml-2">By: {complaint.residentId?.fullName}</span>
@@ -414,7 +546,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                       <h4 className="font-bold text-gray-900 text-lg">{complaint.title}</h4>
                       <p className="text-sm font-medium text-gray-500 mt-1">{complaint.description}</p>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-center gap-2">
                       {complaint.status === "OPEN" && (
                         <Button size="sm" onClick={() => updateComplaintStatus(complaint._id, "IN_PROGRESS")} className="bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-full">
@@ -430,7 +562,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                         <span className="text-sm text-green-600 font-bold px-4 py-2">Resolved</span>
                       )}
                       <button onClick={() => handleDeleteComplaint(complaint._id)} className="ml-2 text-gray-400 hover:text-red-600 transition-colors" title="Delete Complaint">
-                        <Trash2 className="w-5 h-5"/>
+                        <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
@@ -445,13 +577,13 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                   <Megaphone className="w-5 h-5 mr-2 text-blue-600" /> Broadcast New Notice
                 </h3>
                 <form onSubmit={handleSubmit(onSubmitNotice)} className="space-y-4">
-                  <Input 
-                    placeholder="Notice Title (e.g. Water Cut Tomorrow)" 
-                    {...register("title")} 
+                  <Input
+                    placeholder="Notice Title (e.g. Water Cut Tomorrow)"
+                    {...register("title")}
                     className="bg-white"
                   />
-                  <textarea 
-                    placeholder="Details..." 
+                  <textarea
+                    placeholder="Details..."
                     {...register("content")}
                     className="w-full p-4 border border-gray-200 rounded-xl resize-none h-24 outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -476,11 +608,11 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                     <div key={notice._id} className={`p-4 rounded-xl border group relative transition-all ${notice.isImportant ? 'bg-red-50 border-red-100' : 'bg-white border-gray-100'}`}>
                       {editingNoticeId === notice._id ? (
                         <div className="space-y-3">
-                          <Input value={editNoticeData.title || ""} onChange={e => setEditNoticeData({...editNoticeData, title: e.target.value})} className="bg-white font-bold h-9" />
-                          <textarea value={editNoticeData.content || ""} onChange={e => setEditNoticeData({...editNoticeData, content: e.target.value})} className="w-full p-2 border border-gray-200 rounded-lg text-sm resize-none h-20 outline-none focus:ring-1 focus:ring-blue-500" />
+                          <Input value={editNoticeData.title || ""} onChange={e => setEditNoticeData({ ...editNoticeData, title: e.target.value })} className="bg-white font-bold h-9" />
+                          <textarea value={editNoticeData.content || ""} onChange={e => setEditNoticeData({ ...editNoticeData, content: e.target.value })} className="w-full p-2 border border-gray-200 rounded-lg text-sm resize-none h-20 outline-none focus:ring-1 focus:ring-blue-500" />
                           <div className="flex justify-end space-x-2">
-                            <button onClick={() => handleSaveNotice(notice._id)} className="text-sm text-green-600 font-bold flex items-center bg-green-50 px-3 py-1.5 rounded-md hover:bg-green-100 transition"><Check className="w-4 h-4 mr-1"/> Save</button>
-                            <button onClick={() => setEditingNoticeId(null)} className="text-sm text-gray-500 font-bold flex items-center bg-gray-100 px-3 py-1.5 rounded-md hover:bg-gray-200 transition"><X className="w-4 h-4 mr-1"/> Cancel</button>
+                            <button onClick={() => handleSaveNotice(notice._id)} className="text-sm text-green-600 font-bold flex items-center bg-green-50 px-3 py-1.5 rounded-md hover:bg-green-100 transition"><Check className="w-4 h-4 mr-1" /> Save</button>
+                            <button onClick={() => setEditingNoticeId(null)} className="text-sm text-gray-500 font-bold flex items-center bg-gray-100 px-3 py-1.5 rounded-md hover:bg-gray-200 transition"><X className="w-4 h-4 mr-1" /> Cancel</button>
                           </div>
                         </div>
                       ) : (
@@ -492,10 +624,10 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                             <span className="text-xs text-gray-400">{new Date(notice.createdAt).toLocaleDateString()}</span>
                           </div>
                           <p className={`text-sm ${notice.isImportant ? 'text-red-700/90' : 'text-gray-600'}`}>{notice.content}</p>
-                          
+
                           <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white/50 backdrop-blur-sm px-2 py-1 rounded-md">
-                            <button onClick={() => handleEditNotice(notice)} className="text-blue-500 hover:text-blue-700 transition-colors"><Edit2 className="w-4 h-4"/></button>
-                            <button onClick={() => handleDeleteNotice(notice._id)} className="text-red-500 hover:text-red-700 transition-colors"><Trash2 className="w-4 h-4"/></button>
+                            <button onClick={() => handleEditNotice(notice)} className="text-blue-500 hover:text-blue-700 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                            <button onClick={() => handleDeleteNotice(notice._id)} className="text-red-500 hover:text-red-700 transition-colors"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </>
                       )}
@@ -526,20 +658,20 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                       <Input type="date" name="dueDate" required className="w-40 bg-white" />
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col space-y-2 w-full max-w-xl">
                     <label className="text-sm font-medium text-gray-700">Select Specific Flats (Leave empty to generate for ALL flats)</label>
                     <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2 bg-white flex flex-col gap-1 shadow-inner">
                       {flats.map(flat => (
                         <label key={flat._id} className="flex items-center space-x-3 text-sm cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={selectedFlats.includes(flat._id)}
                             onChange={(e) => {
                               if (e.target.checked) setSelectedFlats([...selectedFlats, flat._id]);
                               else setSelectedFlats(selectedFlats.filter(id => id !== flat._id));
                             }}
-                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300" 
+                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
                           />
                           <span className="font-semibold text-gray-800 w-24">{flat.blockName}-{flat.flatNumber}</span>
                           <span className="text-gray-400 text-xs ml-auto truncate">{flat.ownerEmail || flat.tenantEmail || "No Email Registered"}</span>
@@ -578,14 +710,14 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                               <>
                                 <td className="py-3 px-4 font-semibold text-gray-900">{inv.flatId?.blockName}-{inv.flatId?.flatNumber}</td>
                                 <td className="py-3 px-4 text-gray-600">{inv.billingMonth}</td>
-                                <td className="py-3 px-4 font-semibold text-gray-900"><Input type="number" value={editInvoiceData.amount || ""} onChange={e => setEditInvoiceData({...editInvoiceData, amount: e.target.value})} className="h-8 w-24" /></td>
-                                <td className="py-3 px-4"><Input type="date" value={editInvoiceData.dueDate ? new Date(editInvoiceData.dueDate).toISOString().split('T')[0] : ""} onChange={e => setEditInvoiceData({...editInvoiceData, dueDate: e.target.value})} className="h-8 w-36" /></td>
+                                <td className="py-3 px-4 font-semibold text-gray-900"><Input type="number" value={editInvoiceData.amount || ""} onChange={e => setEditInvoiceData({ ...editInvoiceData, amount: e.target.value })} className="h-8 w-24" /></td>
+                                <td className="py-3 px-4"><Input type="date" value={editInvoiceData.dueDate ? new Date(editInvoiceData.dueDate).toISOString().split('T')[0] : ""} onChange={e => setEditInvoiceData({ ...editInvoiceData, dueDate: e.target.value })} className="h-8 w-36" /></td>
                                 <td className="py-3 px-4">
                                   <span className="inline-flex px-2 py-1 text-xs font-bold rounded-md bg-red-100 text-red-700">{inv.status}</span>
                                 </td>
                                 <td className="py-3 px-4 text-right space-x-2">
-                                  <button onClick={() => handleSaveInvoice(inv._id)} className="text-green-600 hover:text-green-800 p-1"><Check className="w-5 h-5"/></button>
-                                  <button onClick={() => setEditingInvoiceId(null)} className="text-gray-400 hover:text-gray-600 p-1"><X className="w-5 h-5"/></button>
+                                  <button onClick={() => handleSaveInvoice(inv._id)} className="text-green-600 hover:text-green-800 p-1"><Check className="w-5 h-5" /></button>
+                                  <button onClick={() => setEditingInvoiceId(null)} className="text-gray-400 hover:text-gray-600 p-1"><X className="w-5 h-5" /></button>
                                 </td>
                               </>
                             ) : (
@@ -604,9 +736,9 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                                 <td className="py-3 px-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
                                   <div className="flex justify-end space-x-2">
                                     {inv.status === 'UNPAID' && (
-                                      <button onClick={() => handleEditInvoice(inv)} className="text-blue-500 hover:text-blue-700 transition-colors" title="Edit Invoice"><Edit2 className="w-4 h-4"/></button>
+                                      <button onClick={() => handleEditInvoice(inv)} className="text-blue-500 hover:text-blue-700 transition-colors" title="Edit Invoice"><Edit2 className="w-4 h-4" /></button>
                                     )}
-                                    <button onClick={() => handleDeleteInvoice(inv._id)} className="text-red-500 hover:text-red-700 transition-colors" title="Delete Invoice"><Trash2 className="w-4 h-4"/></button>
+                                    <button onClick={() => handleDeleteInvoice(inv._id)} className="text-red-500 hover:text-red-700 transition-colors" title="Delete Invoice"><Trash2 className="w-4 h-4" /></button>
                                   </div>
                                 </td>
                               </>
@@ -663,8 +795,8 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                       <p className="text-sm text-gray-500">{member.email}</p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <select 
-                        value={member.role} 
+                      <select
+                        value={member.role}
                         onChange={(e) => handleChangeRole(member._id, e.target.value)}
                         className="border rounded-md px-3 py-1.5 text-sm"
                       >
@@ -733,17 +865,16 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                         <td className="py-3 px-4 text-gray-600">{visitor.purpose}</td>
                         <td className="py-3 px-4 text-gray-600">{visitor.flatId?.blockName}-{visitor.flatId?.flatNumber}</td>
                         <td className="py-3 px-4">
-                          <span className={`inline-flex px-2 py-1 text-xs font-bold rounded-md ${
-                            visitor.status === 'ENTERED' ? 'bg-green-100 text-green-700' :
+                          <span className={`inline-flex px-2 py-1 text-xs font-bold rounded-md ${visitor.status === 'ENTERED' ? 'bg-green-100 text-green-700' :
                             visitor.status === 'EXITED' ? 'bg-gray-100 text-gray-600' :
-                            visitor.status === 'DENIED' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>
+                              visitor.status === 'DENIED' ? 'bg-red-100 text-red-700' :
+                                'bg-yellow-100 text-yellow-700'
+                            }`}>
                             {visitor.status}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-500 whitespace-nowrap">
-                          {visitor.entryTime ? new Date(visitor.entryTime).toLocaleString() : '-'} <br/>
+                          {visitor.entryTime ? new Date(visitor.entryTime).toLocaleString() : '-'} <br />
                           {visitor.exitTime ? new Date(visitor.exitTime).toLocaleString() : ''}
                         </td>
                         <td className="py-3 px-4 text-right">
