@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { authApi } from "@/api/auth.api";
-import { 
-  Loader2, 
-  LayoutDashboard, 
-  Receipt, 
-  MessageSquare, 
-  Users, 
-  Menu, 
-  X, 
+import {
+  Loader2,
+  LayoutDashboard,
+  Receipt,
+  MessageSquare,
+  Users,
+  Menu,
+  X,
   LogOut,
   Search,
   Bell,
@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       { name: "Gatekeeper Portal", href: "/gatekeeper", icon: Shield }
     );
   }
-  
+
   // Check for association admin
   const adminMembership = user?.memberships?.find(m => m.role === 'ASSOCIATION_ADMIN');
   if (adminMembership && adminMembership.associationId) {
@@ -114,7 +114,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen flex bg-[#F1F5F9] font-sans text-[#64748B]">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden transition-opacity"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -134,10 +134,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <X className="w-6 h-6 text-white/70 hover:text-white" />
           </button>
         </div>
-        
+
         {/* Sidebar Nav */}
         <nav className="flex-1 px-4 lg:px-6 py-4 space-y-6 overflow-y-auto sidebar-nav">
-          
+
           {/* MENU GROUP */}
           <div>
             <div className="px-4 mb-4 text-[11px] font-bold text-[#64748B] uppercase tracking-widest">
@@ -147,21 +147,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {navItems.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
-                
+
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`group relative flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                      isActive 
-                        ? 'bg-gradient-to-r from-blue-500/20 to-blue-500/5 text-white border border-blue-500/30 shadow-[inset_0px_1px_0px_rgba(255,255,255,0.1)]' 
+                    className={`group relative flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${isActive
+                        ? 'bg-gradient-to-r from-blue-500/20 to-blue-500/5 text-white border border-blue-500/30 shadow-[inset_0px_1px_0px_rgba(255,255,255,0.1)]'
                         : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'
-                    }`}
+                      }`}
                     onClick={() => setIsSidebarOpen(false)}
                   >
                     <Icon className={`w-[22px] h-[22px] transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-300'}`} strokeWidth={1.5} />
                     <span className="text-[15px]">{item.name}</span>
-                    
+
                     {/* Optional dropdown arrow for structure look */}
                     <ChevronDown className={`absolute right-4 w-4 h-4 transition-colors ${isActive ? 'text-blue-400' : 'text-slate-600 group-hover:text-slate-400'}`} strokeWidth={2} />
                   </Link>
@@ -180,16 +179,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {roleItems.map((item) => {
                   const isActive = pathname === item.href;
                   const Icon = item.icon;
-                  
+
                   return (
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`group relative flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                        isActive 
-                          ? 'bg-gradient-to-r from-blue-500/20 to-blue-500/5 text-white border border-blue-500/30 shadow-[inset_0px_1px_0px_rgba(255,255,255,0.1)]' 
+                      className={`group relative flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${isActive
+                          ? 'bg-gradient-to-r from-blue-500/20 to-blue-500/5 text-white border border-blue-500/30 shadow-[inset_0px_1px_0px_rgba(255,255,255,0.1)]'
                           : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'
-                      }`}
+                        }`}
                       onClick={() => setIsSidebarOpen(false)}
                     >
                       <Icon className={`w-[22px] h-[22px] transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-300'}`} strokeWidth={1.5} />
@@ -211,7 +209,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Top Header */}
         <header className="sticky top-0 z-30 flex h-[72px] w-full items-center justify-between px-4 sm:px-6 backdrop-blur-xl bg-white/70 border-b border-white/50 shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
           <div className="flex items-center gap-2 sm:gap-4 lg:hidden">
-            <button 
+            <button
               className="p-2 rounded-xl bg-white/80 border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors focus:outline-none"
               onClick={() => setIsSidebarOpen(true)}
             >
@@ -224,18 +222,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          <div className="hidden lg:block w-full max-w-md ml-4">
-            <div className="relative">
-              <button className="absolute left-0 top-1/2 -translate-y-1/2">
-                <Search className="w-5 h-5 text-[#8A99AF]" />
-              </button>
-              <input 
-                type="text" 
-                placeholder="Type to search..." 
-                className="w-full bg-transparent pl-9 pr-4 py-2 text-sm text-[#1C2434] outline-none placeholder:text-[#8A99AF]"
-              />
-            </div>
-          </div>
+          {/* <div className="hidden lg:block w-full max-w-md ml-4"> */}
+          {/* <div className="relative"> */}
+          {/* <button className="absolute left-0 top-1/2 -translate-y-1/2"> */}
+          {/* <Search className="w-5 h-5 text-[#8A99AF]" /> */}
+          {/* </button> */}
+          {/* <input  */}
+          {/* // type="text"  */}
+          {/* // placeholder="Type to search..."  */}
+          {/* // className="w-full bg-transparent pl-9 pr-4 py-2 text-sm text-[#1C2434] outline-none placeholder:text-[#8A99AF]" */}
+          {/* // /> */}
+          {/* </div> */}
+          {/* </div> */}
 
           <div className="flex items-center gap-4 sm:gap-6 ml-auto">
             <div className="flex items-center gap-3">
@@ -247,7 +245,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Profile Dropdown */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-3 focus:outline-none"
               >
@@ -273,7 +271,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <p className="text-xs font-semibold text-blue-600 mt-1 uppercase tracking-wider">{displayRole}</p>
                   </div>
                   <div className="p-2">
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100/80 hover:text-red-600 rounded-lg transition-colors group"
                     >
