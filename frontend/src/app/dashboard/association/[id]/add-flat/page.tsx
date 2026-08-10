@@ -106,7 +106,7 @@ export default function AddFlatPage({ params }: { params: Promise<{ id: string }
                   <Mail className="absolute left-4 top-[38px] h-5 w-5 text-gray-400" />
                   <Input
                     label="Owner's Email (Optional)"
-                    placeholder="owner@example.com"
+                    placeholder="owner@aman.com"
                     type="email"
                     className="pl-12 h-14 bg-[#f5f5f7] border-transparent focus:bg-white focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all text-base rounded-2xl font-medium text-gray-900"
                     {...register("ownerEmail")}
@@ -118,7 +118,7 @@ export default function AddFlatPage({ params }: { params: Promise<{ id: string }
                   <Mail className="absolute left-4 top-[38px] h-5 w-5 text-gray-400" />
                   <Input
                     label="Tenant's Email (Optional)"
-                    placeholder="tenant@example.com"
+                    placeholder="tenant@aman.com"
                     type="email"
                     className="pl-12 h-14 bg-[#f5f5f7] border-transparent focus:bg-white focus:border-gray-300 focus:ring-4 focus:ring-gray-100 transition-all text-base rounded-2xl font-medium text-gray-900"
                     {...register("tenantEmail")}

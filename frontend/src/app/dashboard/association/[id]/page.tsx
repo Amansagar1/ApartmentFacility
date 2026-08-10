@@ -830,7 +830,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                 <form onSubmit={handleLogVisitor} className="flex flex-wrap items-end gap-4">
                   <div className="flex flex-col space-y-1">
                     <label className="text-sm font-medium text-gray-700">Visitor Name</label>
-                    <Input name="visitorName" placeholder="e.g. John Doe" required className="bg-white w-48" />
+                    <Input name="visitorName" placeholder="e.g. Aman" required className="bg-white w-48" />
                   </div>
                   <div className="flex flex-col space-y-1">
                     <label className="text-sm font-medium text-gray-700">Phone</label>

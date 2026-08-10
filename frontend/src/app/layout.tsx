@@ -8,8 +8,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "LiveMitra - Dashboard",
-  description: "LiveMitra CRM Dashboard",
+  title: "LiveMitra - Dashboard | Aman",
+  description: "LiveMitra CRM Dashboard created by Aman",
+  authors: [{ name: "Aman" }],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

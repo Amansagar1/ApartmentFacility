@@ -82,7 +82,7 @@ export default function LoginPage() {
               <Input
                 label="Email Address"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="aman@example.com"
                 className="pl-11 h-12 bg-gray-50/80 border-gray-200/80 focus:bg-white transition-all text-base rounded-xl"
                 {...register("email")}
                 error={errors.email?.message}
