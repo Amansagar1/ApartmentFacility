@@ -50,8 +50,13 @@ app.use((req, res, next) => {
 // ----------------Global Error Handling Middleware------------
 app.use(globalErrorHandler);
 
-// ----------------Start the Server------------
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 LiveMitra Server running on port ${PORT}`);
-});
+// ----------------Start the Server (or Export for Vercel)------------
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 LiveMitra Server running on port ${PORT}`);
+  });
+}
+
+// Export for serverless (Vercel)
+module.exports = app;
