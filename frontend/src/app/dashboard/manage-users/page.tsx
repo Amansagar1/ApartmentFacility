@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { usersApi } from "@/api/users.api";
 import { associationsApi } from "@/api/associations.api";
 import { Button } from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
 import { PlusCircle, ShieldAlert, Users as UsersIcon, Building2 } from "lucide-react";
 import toast from "react-hot-toast";
 
