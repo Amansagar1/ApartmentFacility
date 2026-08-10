@@ -12,6 +12,7 @@ const complaintRoutes = require('./src/modules/helpdesk/routes/complaintRoutes')
 const noticeRoutes = require('./src/modules/notices/routes/noticeRoutes');
 const invoiceRoutes = require('./src/modules/billing/routes/invoiceRoutes');
 const supportRoutes = require('./src/modules/support/routes/supportRoutes');
+const userRoutes = require('./src/modules/users/routes/userRoutes');
 
 // ----------------Initialize Express App------------
 const app = express();
@@ -33,6 +34,7 @@ app.use(cors({
 
 // ----------------API Routes------------
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/associations', associationRoutes);
 app.use('/api/v1/flats', flatRoutes);
 app.use('/api/v1/visitors', visitorRoutes);

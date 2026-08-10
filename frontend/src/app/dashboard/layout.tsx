@@ -69,7 +69,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (user?.isSuperAdmin) {
     roleItems.push(
       { name: "All Associations", href: "/dashboard/associations", icon: Building2 },
-      { name: "Onboard Association", href: "/dashboard/create-association", icon: PlusCircle }
+      { name: "Onboard Association", href: "/dashboard/create-association", icon: PlusCircle },
+      { name: "Manage Users", href: "/dashboard/manage-users", icon: Users }
     );
   }
 
