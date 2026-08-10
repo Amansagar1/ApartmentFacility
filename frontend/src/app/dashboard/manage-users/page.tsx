@@ -11,7 +11,7 @@ import { PlusCircle, ShieldAlert, Users as UsersIcon, Building2 } from "lucide-r
 import toast from "react-hot-toast";
 
 export default function ManageUsersPage() {
-  const { user, isSuperAdmin } = useAuthStore();
+  const { user } = useAuthStore();
   const router = useRouter();
   
   const [loading, setLoading] = useState(false);
@@ -28,8 +28,7 @@ export default function ManageUsersPage() {
   });
 
   useEffect(() => {
-    if (!user) return;
-    if (!isSuperAdmin()) {
+    if (!user?.isSuperAdmin) {
       toast.error("Unauthorized access");
       router.push("/dashboard");
       return;
@@ -89,7 +88,7 @@ export default function ManageUsersPage() {
     }
   };
 
-  if (!user || !isSuperAdmin()) return null;
+  if (!user || !user.isSuperAdmin) return null;
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
