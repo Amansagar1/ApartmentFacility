@@ -9,11 +9,9 @@ const sendTokenResponse = (user, statusCode, res) => {
   const options = {
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     httpOnly: true, // Crucial for security against XSS
+    secure: true,
+    sameSite: 'none',
   };
-
-  if (process.env.NODE_ENV === 'production') {
-    options.secure = true;
-  }
 
   res.status(statusCode).cookie('token', token, options).json({
     success: true,
@@ -95,6 +93,8 @@ const logout = async (req, res, next) => {
     res.cookie('token', 'none', {
       expires: new Date(Date.now() + 10 * 1000), // Expire in 10 seconds
       httpOnly: true,
+      secure: true,
+      sameSite: 'none',
     });
 
     res.status(HTTP_STATUS.OK).json({
