@@ -24,7 +24,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Dynamically allow any origin (perfect for Vercel preview branches)
+    callback(null, origin || '*');
+  },
   credentials: true,
 }));
 
