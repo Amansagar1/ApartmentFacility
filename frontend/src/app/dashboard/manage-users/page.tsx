@@ -13,11 +13,11 @@ import toast from "react-hot-toast";
 export default function ManageUsersPage() {
   const { user } = useAuthStore();
   const router = useRouter();
-  
+
   const [loading, setLoading] = useState(false);
   const [associations, setAssociations] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -68,7 +68,7 @@ export default function ManageUsersPage() {
 
       await usersApi.createUser(formData);
       toast.success("User created successfully!");
-      
+
       // Reset form
       setFormData({
         fullName: "",
@@ -78,7 +78,7 @@ export default function ManageUsersPage() {
         role: "ASSOCIATION_ADMIN",
         associationId: ""
       });
-      
+
       // Refresh user list
       fetchInitialData();
     } catch (error: any) {
@@ -109,29 +109,29 @@ export default function ManageUsersPage() {
             <PlusCircle className="h-5 w-5 text-slate-700" />
             Create New User
           </h2>
-          
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <Input
               label="Full Name"
               name="fullName"
-              placeholder="e.g. John Doe"
+              placeholder="e.g. Aman"
               value={formData.fullName}
               onChange={handleInputChange}
               required
               className="bg-gray-50 border-transparent focus:bg-white"
             />
-            
+
             <Input
               label="Email Address"
               name="email"
               type="email"
-              placeholder="user@example.com"
+              placeholder="aman@example.com"
               value={formData.email}
               onChange={handleInputChange}
               required
               className="bg-gray-50 border-transparent focus:bg-white"
             />
-            
+
             <Input
               label="Phone Number (Optional)"
               name="phone"
@@ -240,11 +240,10 @@ export default function ManageUsersPage() {
                         <div className="flex flex-col gap-1">
                           {u.memberships.map((m: any, idx: number) => (
                             <div key={idx} className="text-sm flex items-center gap-2">
-                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                                m.role === 'ASSOCIATION_ADMIN' ? 'bg-blue-100 text-blue-700' :
-                                m.role === 'EMPLOYEE' ? 'bg-amber-100 text-amber-700' :
-                                'bg-emerald-100 text-emerald-700'
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${m.role === 'ASSOCIATION_ADMIN' ? 'bg-blue-100 text-blue-700' :
+                                  m.role === 'EMPLOYEE' ? 'bg-amber-100 text-amber-700' :
+                                    'bg-emerald-100 text-emerald-700'
+                                }`}>
                                 {m.role.replace('_', ' ')}
                               </span>
                               <span className="text-gray-500 truncate max-w-[150px]" title={m.associationId?.name}>

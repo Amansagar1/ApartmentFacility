@@ -13,6 +13,7 @@ import { associationsApi } from "@/api/associations.api";
 import { authApi } from "@/api/auth.api";
 import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 const createAssociationSchema = z.object({
   name: z.string().min(3, "Association name must be at least 3 characters"),
@@ -28,7 +29,6 @@ type CreateAssociationFormValues = z.infer<typeof createAssociationSchema>;
 export default function CreateAssociationPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
-  const [serverError, setServerError] = useState("");
 
   const {
     register,
@@ -40,18 +40,19 @@ export default function CreateAssociationPage() {
 
   const onSubmit = async (data: CreateAssociationFormValues) => {
     try {
-      setServerError("");
       // 1. Create the association on the backend
       await associationsApi.create(data);
 
       // 2. Fetch the newly updated user profile (which now has the new membership)
       const freshUser = await authApi.getMe();
       setUser(freshUser.data);
+      
+      toast.success("Association created successfully!");
 
       // 3. Go back to dashboard
       router.push("/dashboard");
     } catch (error: any) {
-      setServerError(
+      toast.error(
         error.response?.data?.message || "Failed to create association. Please try again."
       );
     }
@@ -76,12 +77,6 @@ export default function CreateAssociationPage() {
 
           <div className="px-10 pb-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
-              {serverError && (
-                <div className="p-4 text-sm text-red-600 bg-red-50/80 border border-red-100 rounded-xl flex items-center">
-                  <span className="font-medium">{serverError}</span>
-                </div>
-              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative md:col-span-2">

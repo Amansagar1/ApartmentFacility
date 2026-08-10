@@ -10,9 +10,9 @@ import { Mail, Lock, User } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { authApi } from "@/api/auth.api";
 import { useAuthStore } from "@/store/useAuthStore";
+import toast from "react-hot-toast";
 
 const registerSchema = z.object({
   fullName: z.string().min(3, "Full name must be at least 3 characters"),
@@ -25,7 +25,6 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
-  const [serverError, setServerError] = useState("");
 
   const {
     register,
@@ -37,16 +36,17 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      setServerError("");
       const res = await authApi.register(data);
       
       // Save user to global state
       setUser(res.user);
       
+      toast.success("Successfully registered!");
+      
       // Redirect to dashboard
       router.push("/dashboard");
     } catch (error: any) {
-      setServerError(error.response?.data?.message || "An error occurred during registration");
+      toast.error(error.response?.data?.message || "An error occurred during registration");
     }
   };
 
@@ -70,12 +70,6 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           
-          {serverError && (
-            <div className="p-4 text-sm text-red-600 bg-red-50/80 border border-red-100 rounded-xl flex items-center">
-              <span className="font-medium">{serverError}</span>
-            </div>
-          )}
-
           <div className="space-y-4">
             <div className="relative">
               <User className="absolute left-3.5 top-[38px] h-5 w-5 text-gray-400" />

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { flatsApi } from "@/api/flats.api";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 const addFlatSchema = z.object({
   blockName: z.string().min(1, "Block name is required"),
@@ -24,7 +25,6 @@ type AddFlatFormValues = z.infer<typeof addFlatSchema>;
 export default function AddFlatPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id: associationId } = use(params);
-  const [serverError, setServerError] = useState("");
 
   const {
     register,
@@ -40,15 +40,17 @@ export default function AddFlatPage({ params }: { params: Promise<{ id: string }
 
   const onSubmit = async (data: AddFlatFormValues) => {
     try {
-      setServerError("");
       await flatsApi.create({
         ...data,
         associationId,
       });
+      
+      toast.success("Flat added successfully!");
+      
       // Redirect back to the directory upon success
       router.push(`/dashboard/association/${associationId}`);
     } catch (error: any) {
-      setServerError(
+      toast.error(
         error.response?.data?.message || "Failed to add flat. Please try again."
       );
     }
@@ -73,12 +75,6 @@ export default function AddFlatPage({ params }: { params: Promise<{ id: string }
           <div className="px-10 pb-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               
-              {serverError && (
-                <div className="p-4 text-sm text-red-600 bg-red-50/80 border border-red-100 rounded-2xl flex items-center">
-                  <span className="font-medium">{serverError}</span>
-                </div>
-              )}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative">
                   <Building2 className="absolute left-4 top-[38px] h-5 w-5 text-gray-400" />

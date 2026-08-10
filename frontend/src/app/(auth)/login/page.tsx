@@ -10,9 +10,9 @@ import { Mail, Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { authApi } from "@/api/auth.api";
 import { useAuthStore } from "@/store/useAuthStore";
+import toast from "react-hot-toast";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -24,7 +24,6 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
-  const [serverError, setServerError] = useState("");
 
   const {
     register,
@@ -36,16 +35,17 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      setServerError("");
       const res = await authApi.login(data);
       
       // Save user to global state
       setUser(res.user);
       
+      toast.success("Successfully logged in!");
+      
       // Redirect to dashboard with a hard reload to ensure fresh data and clear cache
       window.location.href = "/dashboard";
     } catch (error: any) {
-      setServerError(error.response?.data?.message || "An error occurred during login");
+      toast.error(error.response?.data?.message || "An error occurred during login");
     }
   };
 
@@ -70,12 +70,6 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           
-          {serverError && (
-            <div className="p-4 text-sm text-red-600 bg-red-50/80 border border-red-100 rounded-xl flex items-center">
-              <span className="font-medium">{serverError}</span>
-            </div>
-          )}
-
           <div className="space-y-4">
             <div className="relative">
               <Mail className="absolute left-3.5 top-[38px] h-5 w-5 text-gray-400" />
