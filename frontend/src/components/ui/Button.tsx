@@ -2,10 +2,11 @@
 import * as React from "react"
 import { motion, HTMLMotionProps } from "framer-motion"
 
-export interface ButtonProps extends HTMLMotionProps<"button"> {
+export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
   variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
+  children?: React.ReactNode;
 }
 
 // ----------------Reusable Button Component------------
@@ -17,7 +18,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     
     // Light mode curated color palette variants
     const variants = {
-      primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
+      primary: "bg-slate-700 hover:bg-slate-800 text-white shadow-sm focus:ring-slate-500",
       secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500",
       outline: "border border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700",
       ghost: "bg-transparent hover:bg-gray-100 text-gray-700",

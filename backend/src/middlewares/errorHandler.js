@@ -12,6 +12,8 @@ class AppError extends Error {
 
 // ----------------Global Express Error Handling Middleware------------
 const globalErrorHandler = (err, req, res, next) => {
+  console.error("GLOBAL ERROR:", err);
+
   let { statusCode, message } = err;
   
   if (!statusCode) statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
@@ -34,7 +36,7 @@ const globalErrorHandler = (err, req, res, next) => {
 
   res.status(statusCode).json({
     success: false,
-    error: message,
+    message: message,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
 };

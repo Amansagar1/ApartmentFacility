@@ -153,7 +153,7 @@ export default function CreateAssociationPage() {
               </div>
 
               <div className="pt-6 mt-4 flex justify-center">
-                <Button type="submit" className="h-14 px-12 text-base font-semibold bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-[0_4px_14px_0_rgb(0,0,0,0.1)] transition-all w-full md:w-auto" isLoading={isSubmitting}>
+                <Button type="submit" className="h-14 px-12 text-base font-semibold bg-[#1E293B] hover:bg-[#334155] border border-blue-400/30 shadow-[inset_0px_1px_0px_rgba(255,255,255,0.1)] text-white rounded-full transition-all w-full md:w-auto hover:-translate-y-0.5 active:translate-y-0" isLoading={isSubmitting}>
                   Create Association
                 </Button>
               </div>

@@ -58,7 +58,7 @@ export default function AssociationsPage() {
               <p className="text-sm text-slate-500 mt-1">Manage and monitor all associations onboarded to LiveMitra.</p>
             </div>
             <Link href="/dashboard/create-association">
-              <Button className="bg-slate-900 hover:bg-slate-800 text-white shadow-sm font-medium h-9 px-4 text-sm rounded-md">
+              <Button className="shadow-sm font-medium h-9 px-4 text-sm rounded-md">
                 <Plus className="w-4 h-4 mr-1.5" /> Onboard Association
               </Button>
             </Link>

@@ -101,6 +101,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   };
 
+  let displayRole = "Resident";
+  if (user?.isSuperAdmin) {
+    displayRole = "Super Admin";
+  } else if (user?.memberships?.some((m: any) => m.role === 'ASSOCIATION_ADMIN')) {
+    displayRole = "Association Admin";
+  } else if (user?.isGatekeeper || user?.memberships?.some((m: any) => m.role === 'EMPLOYEE')) {
+    displayRole = "Gatekeeper";
+  }
+
   return (
     <div className="min-h-screen flex bg-[#F1F5F9] font-sans text-[#64748B]">
       {/* Mobile Sidebar Overlay */}
@@ -246,7 +255,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <span className="block text-sm font-medium text-[#1C2434]">
                     {user?.fullName || "User"}
                   </span>
-                  <span className="block text-xs text-[#64748B]">Member</span>
+                  <span className="block text-xs text-[#64748B]">{displayRole}</span>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center">
                   <span className="font-bold text-[#1C2434] text-sm">
@@ -261,6 +270,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div className="px-5 py-4 border-b border-slate-100">
                     <p className="text-sm font-bold text-slate-800">{user?.fullName}</p>
                     <p className="text-xs font-medium text-slate-500 truncate mt-0.5">{user?.email}</p>
+                    <p className="text-xs font-semibold text-blue-600 mt-1 uppercase tracking-wider">{displayRole}</p>
                   </div>
                   <div className="p-2">
                     <button 

@@ -232,14 +232,15 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const visitorName = formData.get("visitorName") as string;
+    const visitorPhone = formData.get("visitorPhone") as string;
     const purpose = formData.get("purpose") as string;
     const flatId = formData.get("flatId") as string;
 
-    if (!visitorName || !purpose || !flatId) return alert("Please fill all fields");
+    if (!visitorName || !visitorPhone || !purpose || !flatId) return alert("Please fill all fields");
 
     setIsLoggingVisitor(true);
     try {
-      await visitorsApi.logVisitor({ associationId, flatId, visitorName, purpose });
+      await visitorsApi.logVisitor({ associationId, flatId, visitorName, visitorPhone, purpose });
       const response = await visitorsApi.getAllForAssociation(associationId);
       setVisitorLogs(response.data);
       e.currentTarget.reset();
@@ -301,7 +302,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
           </div>
           {activeTab === "directory" && (
             <Button
-              className="rounded-full px-6 font-semibold bg-gray-900 text-white hover:bg-gray-800 shadow-[0_4px_14px_0_rgb(0,0,0,0.1)] transition-all"
+              className="rounded-full px-6 font-semibold shadow-[0_4px_14px_0_rgb(0,0,0,0.1)] transition-all"
               onClick={() => router.push(`/dashboard/association/${associationId}/add-flat`)}
             >
               <Plus className="w-5 h-5 mr-2" /> Add Flat
@@ -407,15 +408,19 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                       <AreaChart data={visitorData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3C50E0" stopOpacity={0.3}/>
+                            <stop offset="5%" stopColor="#6577F3" stopOpacity={0.4}/>
                             <stop offset="95%" stopColor="#3C50E0" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="lineGradient2" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#3C50E0" />
+                            <stop offset="100%" stopColor="#6577F3" />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 12}} dy={10} />
                         <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 12}} />
-                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                        <Area type="monotone" dataKey="visitors" stroke="#3C50E0" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitors)" />
+                        <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', backgroundColor: '#0F172A', color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                        <Area type="monotone" dataKey="visitors" stroke="url(#lineGradient2)" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitors)" />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -549,12 +554,12 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
 
                     <div className="flex flex-wrap items-center gap-2">
                       {complaint.status === "OPEN" && (
-                        <Button size="sm" onClick={() => updateComplaintStatus(complaint._id, "IN_PROGRESS")} className="bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-full">
+                        <Button size="sm" onClick={() => updateComplaintStatus(complaint._id, "IN_PROGRESS")} className="font-bold rounded-full">
                           Mark In Progress
                         </Button>
                       )}
                       {(complaint.status === "OPEN" || complaint.status === "IN_PROGRESS") && (
-                        <Button size="sm" onClick={() => updateComplaintStatus(complaint._id, "RESOLVED")} className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-full">
+                        <Button size="sm" onClick={() => updateComplaintStatus(complaint._id, "RESOLVED")} className="font-bold rounded-full">
                           Resolve
                         </Button>
                       )}
@@ -592,7 +597,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                       <input type="checkbox" {...register("isImportant")} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500" />
                       <span>Mark as Highly Important (Red Alert)</span>
                     </label>
-                    <Button type="submit" isLoading={isSubmitting} className="rounded-full px-6 font-bold bg-blue-600 text-white hover:bg-blue-700">
+                    <Button type="submit" isLoading={isSubmitting} className="rounded-full px-6 font-bold">
                       Publish Notice
                     </Button>
                   </div>
@@ -644,24 +649,24 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                   <Receipt className="w-5 h-5 mr-2" /> Generate Maintenance Bills
                 </h3>
                 <form onSubmit={handleGenerateBills} className="flex flex-col gap-5">
-                  <div className="flex flex-wrap items-end gap-4">
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-sm font-medium text-gray-700">Amount (₹)</label>
-                      <Input type="number" name="amount" placeholder="e.g. 2000" required className="w-32 bg-white" />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex flex-col space-y-1.5">
+                      <label className="text-sm font-semibold text-gray-700">Amount (₹)</label>
+                      <Input type="number" name="amount" placeholder="e.g. 2000" required className="w-full bg-white transition-all focus:ring-2 focus:ring-blue-500" />
                     </div>
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-sm font-medium text-gray-700">Billing Month</label>
-                      <Input name="billingMonth" placeholder="e.g. August 2026" required className="w-48 bg-white" />
+                    <div className="flex flex-col space-y-1.5">
+                      <label className="text-sm font-semibold text-gray-700">Billing Month</label>
+                      <Input name="billingMonth" placeholder="e.g. August 2026" required className="w-full bg-white transition-all focus:ring-2 focus:ring-blue-500" />
                     </div>
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-sm font-medium text-gray-700">Due Date</label>
-                      <Input type="date" name="dueDate" required className="w-40 bg-white" />
+                    <div className="flex flex-col space-y-1.5">
+                      <label className="text-sm font-semibold text-gray-700">Due Date</label>
+                      <Input type="date" name="dueDate" required className="w-full bg-white transition-all focus:ring-2 focus:ring-blue-500" />
                     </div>
                   </div>
 
-                  <div className="flex flex-col space-y-2 w-full max-w-xl">
-                    <label className="text-sm font-medium text-gray-700">Select Specific Flats (Leave empty to generate for ALL flats)</label>
-                    <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2 bg-white flex flex-col gap-1 shadow-inner">
+                  <div className="flex flex-col space-y-2 w-full">
+                    <label className="text-sm font-semibold text-gray-700">Select Specific Flats (Leave empty to generate for ALL flats)</label>
+                    <div className="max-h-56 overflow-y-auto border border-gray-200 rounded-xl p-3 bg-white flex flex-col gap-2 shadow-inner">
                       {flats.map(flat => (
                         <label key={flat._id} className="flex items-center space-x-3 text-sm cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
                           <input
@@ -680,7 +685,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                     </div>
                   </div>
 
-                  <Button type="submit" isLoading={isGeneratingBills} className="rounded-xl px-8 font-bold bg-blue-600 text-white hover:bg-blue-700 h-12 w-fit">
+                  <Button type="submit" isLoading={isGeneratingBills} className="rounded-xl px-8 font-bold h-12 w-fit">
                     {selectedFlats.length > 0 ? `Generate for ${selectedFlats.length} Selected Flats` : "Generate for All Flats"}
                   </Button>
                 </form>
@@ -770,8 +775,8 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                         <p className="text-sm mt-1">Requested Role: <span className="font-semibold">{member.role}</span></p>
                       </div>
                       <div className="space-x-2">
-                        <Button onClick={() => handleApproveMember(member._id, 'ACTIVE')} className="bg-green-600 hover:bg-green-700 text-white rounded-full">Approve</Button>
-                        <Button onClick={() => handleApproveMember(member._id, 'REJECTED')} variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 rounded-full">Reject</Button>
+                        <Button onClick={() => handleApproveMember(member._id, 'ACTIVE')} className="rounded-full">Approve</Button>
+                        <Button onClick={() => handleApproveMember(member._id, 'REJECTED')} className="rounded-full">Reject</Button>
                       </div>
                     </div>
                   ))
@@ -825,11 +830,20 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                 <form onSubmit={handleLogVisitor} className="flex flex-wrap items-end gap-4">
                   <div className="flex flex-col space-y-1">
                     <label className="text-sm font-medium text-gray-700">Visitor Name</label>
-                    <Input name="visitorName" placeholder="e.g. Amazon Delivery" required className="bg-white w-56" />
+                    <Input name="visitorName" placeholder="e.g. John Doe" required className="bg-white w-48" />
+                  </div>
+                  <div className="flex flex-col space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Phone</label>
+                    <Input name="visitorPhone" placeholder="e.g. 9876543210" required className="bg-white w-40" />
                   </div>
                   <div className="flex flex-col space-y-1">
                     <label className="text-sm font-medium text-gray-700">Purpose</label>
-                    <Input name="purpose" placeholder="e.g. Delivery" required className="bg-white w-48" />
+                    <select name="purpose" required className="h-10 px-3 border border-gray-200 rounded-md bg-white w-40 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="Delivery">Delivery</option>
+                      <option value="Guest">Guest</option>
+                      <option value="Service">Service</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
                   <div className="flex flex-col space-y-1">
                     <label className="text-sm font-medium text-gray-700">Destination Flat</label>
@@ -840,7 +854,7 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                       ))}
                     </select>
                   </div>
-                  <Button type="submit" isLoading={isLoggingVisitor} className="rounded-xl px-8 font-bold bg-indigo-600 text-white hover:bg-indigo-700 h-10 ml-auto">
+                  <Button type="submit" isLoading={isLoggingVisitor} className="rounded-xl px-8 font-bold h-10 ml-auto">
                     Log Visitor & Ask Resident
                   </Button>
                 </form>
@@ -880,12 +894,12 @@ export default function AssociationDashboardPage({ params }: { params: Promise<{
                         <td className="py-3 px-4 text-right">
                           <div className="flex justify-end space-x-2">
                             {visitor.status === 'APPROVED' && (
-                              <Button size="sm" onClick={() => handleVisitorStatusChange(visitor._id, 'ENTERED')} className="bg-green-600 hover:bg-green-700 text-white text-xs h-8">
+                              <Button size="sm" onClick={() => handleVisitorStatusChange(visitor._id, 'ENTERED')} className="text-xs h-8">
                                 Mark Entered
                               </Button>
                             )}
                             {visitor.status === 'ENTERED' && (
-                              <Button size="sm" onClick={() => handleVisitorStatusChange(visitor._id, 'EXITED')} variant="outline" className="text-gray-600 text-xs h-8">
+                              <Button size="sm" onClick={() => handleVisitorStatusChange(visitor._id, 'EXITED')} className="text-xs h-8">
                                 Mark Exited
                               </Button>
                             )}

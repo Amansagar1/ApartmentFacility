@@ -42,8 +42,8 @@ export default function LoginPage() {
       // Save user to global state
       setUser(res.user);
       
-      // Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to dashboard with a hard reload to ensure fresh data and clear cache
+      window.location.href = "/dashboard";
     } catch (error: any) {
       setServerError(error.response?.data?.message || "An error occurred during login");
     }

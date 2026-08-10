@@ -199,7 +199,7 @@ export default function DashboardPage() {
                     router.push(`/dashboard/associations`);
                   }
                 }}
-                className="bg-[#0F172A]  hover:bg-blue-600 text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 relative z-10 text-sm whitespace-nowrap border border-blue-400/50"
+                className="bg-[#0F172A] hover:bg-[#1E293B] text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 relative z-10 text-sm whitespace-nowrap border border-blue-500/50 shadow-[inset_0px_1px_0px_rgba(255,255,255,0.1)]"
               >
                 Go to Admin Panel
               </button>
@@ -281,15 +281,19 @@ export default function DashboardPage() {
                   <AreaChart data={visitorData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorVisitorsMain" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3C50E0" stopOpacity={0.3} />
+                        <stop offset="5%" stopColor="#6577F3" stopOpacity={0.4} />
                         <stop offset="95%" stopColor="#3C50E0" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#3C50E0" />
+                        <stop offset="100%" stopColor="#6577F3" />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} dy={10} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                    <Area type="monotone" dataKey="visitors" stroke="#3C50E0" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitorsMain)" />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', backgroundColor: '#0F172A', color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                    <Area type="monotone" dataKey="visitors" stroke="url(#lineGradient)" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitorsMain)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -391,9 +395,9 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="font-bold text-[#3C50E0]">₹{invoice.amount}</span>
-                          <Button size="sm" onClick={() => handlePayment(invoice)} className="h-9 bg-[#3C50E0] hover:bg-[#3C50E0]/90 text-white rounded-lg shadow-md px-4 font-semibold">
-                            Pay
-                          </Button>
+                          <button onClick={() => handlePayment(invoice)} className="px-4 py-2 text-sm font-bold text-white bg-[#0F172A] rounded-lg shadow-[inset_0px_1px_0px_rgba(255,255,255,0.1)] hover:bg-[#1E293B] border border-blue-500/30 transition-all whitespace-nowrap">
+                            Pay Now
+                          </button>
                         </div>
                       </div>
                     ))}
